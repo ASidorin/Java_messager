@@ -14,49 +14,44 @@ import ru.sidorin.java_messager.repository.MessageRepository;
 
 import java.util.Map;
 
+
 @Controller
 public class MainController {
-
     @Autowired
-    private MessageRepository messageRepository;
+    private MessageRepository messageRepo;
 
     @GetMapping("/")
-    public String greeting(Model model) {
+    public String greeting(Map<String, Object> model) {
         return "greeting";
     }
 
-
     @GetMapping("/main")
-    public String main(Map<String, Object> model) {
-        Iterable<Message> messages = messageRepository.findAll();
+    public String main(@RequestParam(required = false, defaultValue = "") String filter, Model model) {
+        Iterable<Message> messages = messageRepo.findAll();
 
-        model.put("messages", messages);
+        if (filter != null && !filter.isEmpty()) {
+            messages = messageRepo.findByTag(filter);
+        } else {
+            messages = messageRepo.findAll();
+        }
+
+        model.addAttribute("messages", messages);
+        model.addAttribute("filter", filter);
 
         return "main";
     }
 
     @PostMapping("/main")
-    public String add(@AuthenticationPrincipal User user, @RequestParam String text, @RequestParam String tag, Map<String, Object> model) {
+    public String add(
+            @AuthenticationPrincipal User user,
+            @RequestParam String text,
+            @RequestParam String tag, Map<String, Object> model
+    ) {
         Message message = new Message(text, tag, user);
 
-        messageRepository.save(message);
+        messageRepo.save(message);
 
-        Iterable<Message> messages = messageRepository.findAll();
-
-        model.put("messages", messages);
-
-        return "main";
-    }
-
-    @PostMapping("filter")
-    public String filter(@RequestParam String filter, Map<String, Object> model) {
-        Iterable<Message> messages;
-
-        if (filter != null && !filter.isEmpty()) {
-            messages = messageRepository.findByTag(filter);
-        } else {
-            messages = messageRepository.findAll();
-        }
+        Iterable<Message> messages = messageRepo.findAll();
 
         model.put("messages", messages);
 
