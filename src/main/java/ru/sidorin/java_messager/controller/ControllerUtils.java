@@ -1,6 +1,5 @@
 package ru.sidorin.java_messager.controller;
 
-
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
